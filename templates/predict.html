@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Churn Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { transition: background-color 0.3s, color 0.3s; background-color: #f1f5f9; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .section-header { font-size: 1.1rem; font-weight: bold; color: #2563eb; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 16px; }
+        [data-bs-theme="dark"] body { background-color: #0f172a; }
+        [data-bs-theme="dark"] .bg-white { background-color: #1e293b !important; color: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-3 mb-4">
+    <a class="navbar-brand fw-bold" href="/">📊 Telco Analytics Platform</a>
+    <div class="navbar-nav ms-auto align-items-center">
+        <a class="nav-link text-white fw-semibold" href="/">Executive Dashboard</a>
+        <a class="nav-link active fw-semibold" href="/predict">Single Prediction</a>
+        <a class="nav-link text-white fw-semibold" href="/batch">Batch Scoring</a>
+        <button class="btn btn-outline-light btn-sm ms-3" onclick="toggleTheme()" id="themeBtn">🌙 Dark Mode</button>
+    </div>
+</nav>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card p-4 bg-white">
+                <h3 class="fw-bold mb-1">Customer Profile Risk Evaluator</h3>
+                <p class="text-muted mb-4">Provide customer plan details to generate ML-driven churn probability.</p>
+
+                {% if show_result %}
+                <div class="alert p-4 mb-4 border rounded shadow-sm text-center" style="background-color: #f8fafc;">
+                    <span class="badge {{ risk_badge }} px-3 py-2 fs-6 mb-2">{{ risk_level }}</span>
+                    <h1 class="display-4 fw-bold my-2 text-dark">{{ risk_percentage }}%</h1>
+                    <p class="fs-5 fw-semibold text-secondary mb-0">{{ prediction_text }}</p>
+                </div>
+                {% endif %}
+
+                {% if error %}
+                <div class="alert alert-danger mb-4">
+                    <strong>Error:</strong> {{ error }}
+                </div>
+                {% endif %}
+
+                <form action="/predict" method="POST">
+
+                    <div class="section-header">1. Customer Demographics</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Gender</label>
+                            <select class="form-select" name="gender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Senior Citizen</label>
+                            <select class="form-select" name="SeniorCitizen">
+                                <option value="0">No</option>
+                                <option value="1">Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Partner</label>
+                            <select class="form-select" name="Partner">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Dependents</label>
+                            <select class="form-select" name="Dependents">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section-header">2. Subscribed Services</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Phone Service</label>
+                            <select class="form-select" name="PhoneService">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Multiple Lines</label>
+                            <select class="form-select" name="MultipleLines">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No phone service">No phone service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Internet Service</label>
+                            <select class="form-select" name="InternetService">
+                                <option value="Fiber optic">Fiber optic</option>
+                                <option value="DSL">DSL</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Online Security</label>
+                            <select class="form-select" name="OnlineSecurity">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No internet service">No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Online Backup</label>
+                            <select class="form-select" name="OnlineBackup">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No internet service">No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Device Protection</label>
+                            <select class="form-select" name="DeviceProtection">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No internet service">No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tech Support</label>
+                            <select class="form-select" name="TechSupport">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No internet service">No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Streaming TV</label>
+                            <select class="form-select" name="StreamingTV">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No internet service">No internet service</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Streaming Movies</label>
+                            <select class="form-select" name="StreamingMovies">
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No internet service">No internet service</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section-header">3. Account & Billing</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tenure (Months)</label>
+                            <input type="number" class="form-control" name="tenure" placeholder="e.g. 12" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Contract Plan</label>
+                            <select class="form-select" name="Contract">
+                                <option value="Month-to-month">Month-to-month</option>
+                                <option value="One year">One year</option>
+                                <option value="Two year">Two year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Paperless Billing</label>
+                            <select class="form-select" name="PaperlessBilling">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Payment Method</label>
+                            <select class="form-select" name="PaymentMethod">
+                                <option value="Electronic check">Electronic check</option>
+                                <option value="Mailed check">Mailed check</option>
+                                <option value="Bank transfer (automatic)">Bank transfer</option>
+                                <option value="Credit card (automatic)">Credit card</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Monthly Charges ($)</label>
+                            <input type="number" step="0.01" class="form-control" name="MonthlyCharges" placeholder="e.g. 70.35" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Total Charges ($)</label>
+                            <input type="number" step="0.01" class="form-control" name="TotalCharges" placeholder="e.g. 844.20" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5">Calculate Churn Score</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function applySavedTheme() {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        const btn = document.getElementById('themeBtn');
+        if (btn) btn.innerText = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-bs-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applySavedTheme();
+    }
+    applySavedTheme();
+</script>
+</body>
+</html>

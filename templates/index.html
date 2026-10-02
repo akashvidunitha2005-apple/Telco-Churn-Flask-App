@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telco Churn Prediction & Analytics Dashboard</title>
+    <!-- Modern Styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+        .stat-card { border-left: 4px solid #38bdf8; }
+        .form-control, .form-select { background-color: #0f172a; border: 1px solid #475569; color: #f8fafc; }
+        .form-control:focus, .form-select:focus { background-color: #0f172a; color: #fff; border-color: #38bdf8; }
+        .btn-predict { background-color: #0284c7; border: none; font-weight: bold; }
+        .btn-predict:hover { background-color: #0369a1; }
+        .result-box { border-radius: 10px; padding: 20px; text-align: center; }
+    </style>
+</head>
+<body class="p-4">
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary">
+        <h2>📊 Telco Churn Analytics & Prediction Portal</h2>
+        <span class="badge bg-primary">Machine Learning Model Active</span>
+    </div>
+
+    <!-- 1. Stats Dashboard -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card p-3">
+                <small class="text-secondary">TOTAL CUSTOMERS</small>
+                <h3 class="mt-1">{{ stats.total_customers if stats else '7,043' }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3 border-danger">
+                <small class="text-secondary">OVERALL CHURN RATE</small>
+                <h3 class="mt-1 text-danger">{{ stats.churn_rate if stats else '26.54%' }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3 border-success">
+                <small class="text-secondary">ACTIVE CUSTOMERS</small>
+                <h3 class="mt-1 text-success">{{ stats.active_customers if stats else '5,174' }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card p-3 border-warning">
+                <small class="text-secondary">HIGH RISK COHORT</small>
+                <h3 class="mt-1 text-warning">{{ stats.high_risk_customers if stats else '1,869' }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- 2. Single Customer Prediction Form -->
+        <div class="col-lg-5">
+            <div class="card p-4 h-100">
+                <h4 class="mb-3">👤 Customer Profile Scoring</h4>
+                <form action="/predict" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Tenure (Months):</label>
+                        <input type="number" class="form-control" name="tenure" value="12" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Monthly Charges ($):</label>
+                        <input type="number" step="0.01" class="form-control" name="monthly_charges" value="75.50" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Total Charges ($):</label>
+                        <input type="number" step="0.01" class="form-control" name="total_charges" value="906.00" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contract Type:</label>
+                        <select class="form-select" name="contract">
+                            <option value="Month-to-month">Month-to-month</option>
+                            <option value="One year">One year</option>
+                            <option value="Two year">Two year</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Internet Service:</label>
+                        <select class="form-select" name="internet_service">
+                            <option value="Fiber optic">Fiber optic</option>
+                            <option value="DSL">DSL</option>
+                            <option value="No">No Internet</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tech Support:</label>
+                        <select class="form-select" name="tech_support">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-predict w-100 py-2">Evaluate Churn Risk</button>
+                </form>
+
+                {% if show_result %}
+                <div class="result-box mt-4" style="background-color: rgba(255,255,255,0.05); border: 2px solid {{ risk_color }};">
+                    <h5 style="color: {{ risk_color }};">{{ risk_level }}</h5>
+                    <h3>{{ risk_percentage }}% Probability</h3>
+                    <p class="mb-0 text-secondary">{{ prediction_text }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 3. Visual Analytics Section -->
+        <div class="col-lg-7">
+            <div class="card p-4 h-100">
+                <h4 class="mb-3">📈 Visual Analytics & Insights</h4>
+                <div class="row g-3">
+                    <div class="col-md-6 text-center">
+                        <small class="text-secondary d-block mb-1">Contract vs Churn Rate</small>
+                        <img src="/static/contract_churn.png" class="img-fluid rounded border border-secondary" alt="Contract Churn" onerror="this.src='https://placehold.co/400x250/1e293b/white?text=Contract+Chart'">
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <small class="text-secondary d-block mb-1">Churn Distribution</small>
+                        <img src="/static/churn_distribution.png" class="img-fluid rounded border border-secondary" alt="Distribution" onerror="this.src='https://placehold.co/400x250/1e293b/white?text=Churn+Distribution'">
+                    </div>
+                    <div class="col-12 text-center mt-3">
+                        <small class="text-secondary d-block mb-1">Feature Importance Insights</small>
+                        <img src="/static/feature_importance.png" class="img-fluid rounded border border-secondary" alt="Feature Importance" onerror="this.src='https://placehold.co/600x220/1e293b/white?text=Feature+Importance'">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
